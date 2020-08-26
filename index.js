@@ -1,10 +1,11 @@
 require('dotenv').config();
+const moment = require('moment');
 const Sheet = require('./sheet');
 const fetch = require('node-fetch');
 
 async function scrapePage(i) {
 	const res = await fetch(
-		`https://jobs.github.com/positions.json?page=${i}&search=`
+		`https://jobs.github.com/positions.json?page=${i}&search=remote`
 	);
 	const json = await res.json();
 
@@ -13,7 +14,7 @@ async function scrapePage(i) {
 			COMPANY: job.company,
 			TITLE: job.title,
 			LOCATION: job.location,
-			DATE: job.created_at,
+			DATE: moment(job.created_at).format('L'),
 			URL: job.url,
 		};
 	});
@@ -25,23 +26,15 @@ async function scrapePage(i) {
 	let i = 1;
 	let rows = [];
 
+	// loop through all pages
 	while (true) {
 		const newRows = await scrapePage(i);
-		console.log('new row length', newRows.length);
+
 		if (newRows.length === 0) break;
 		rows = rows.concat(newRows);
+
 		i++;
 	}
-
-	console.log('total rows length', rows.length);
-
-	// filter by key words
-
-	// convert date
-
-	// sort by date
-
-	console.log('filtered total rows length', rows.length);
 
 	const sheet = new Sheet();
 	await sheet.load();
